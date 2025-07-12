@@ -14,6 +14,93 @@ export type Database = {
   }
   public: {
     Tables: {
+      courses: {
+        Row: {
+          code: string
+          created_at: string | null
+          credits: number
+          description: string | null
+          id: string
+          instructor: string
+          location: string | null
+          name: string
+          schedule: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          code: string
+          created_at?: string | null
+          credits?: number
+          description?: string | null
+          id?: string
+          instructor: string
+          location?: string | null
+          name: string
+          schedule: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          code?: string
+          created_at?: string | null
+          credits?: number
+          description?: string | null
+          id?: string
+          instructor?: string
+          location?: string | null
+          name?: string
+          schedule?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          address: string | null
+          avatar_url: string | null
+          bio: string | null
+          created_at: string | null
+          full_name: string | null
+          gpa: number | null
+          id: string
+          major: string | null
+          phone: string | null
+          student_id: string | null
+          updated_at: string | null
+          year: string | null
+        }
+        Insert: {
+          address?: string | null
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string | null
+          full_name?: string | null
+          gpa?: number | null
+          id: string
+          major?: string | null
+          phone?: string | null
+          student_id?: string | null
+          updated_at?: string | null
+          year?: string | null
+        }
+        Update: {
+          address?: string | null
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string | null
+          full_name?: string | null
+          gpa?: number | null
+          id?: string
+          major?: string | null
+          phone?: string | null
+          student_id?: string | null
+          updated_at?: string | null
+          year?: string | null
+        }
+        Relationships: []
+      }
       tasks: {
         Row: {
           created_at: string | null
