@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -39,19 +40,12 @@ All colors MUST be HSL.
     --radius: 0.5rem;
 
     --sidebar-background: 0 0% 98%;
-
     --sidebar-foreground: 240 5.3% 26.1%;
-
     --sidebar-primary: 240 5.9% 10%;
-
     --sidebar-primary-foreground: 0 0% 98%;
-
     --sidebar-accent: 240 4.8% 95.9%;
-
     --sidebar-accent-foreground: 240 5.9% 10%;
-
     --sidebar-border: 220 13% 91%;
-
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
 
@@ -92,6 +86,59 @@ All colors MUST be HSL.
     --sidebar-border: 240 3.7% 15.9%;
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
+
+  /* Theme variants */
+  .theme-ocean {
+    --primary: 197 71% 52%;
+    --primary-foreground: 210 40% 98%;
+    --accent: 197 71% 96%;
+    --accent-foreground: 197 71% 15%;
+  }
+
+  .theme-sunset {
+    --primary: 25 95% 53%;
+    --primary-foreground: 210 40% 98%;
+    --accent: 25 95% 96%;
+    --accent-foreground: 25 95% 15%;
+  }
+
+  .theme-forest {
+    --primary: 142 76% 36%;
+    --primary-foreground: 210 40% 98%;
+    --accent: 142 76% 96%;
+    --accent-foreground: 142 76% 15%;
+  }
+
+  .theme-purple {
+    --primary: 262 83% 58%;
+    --primary-foreground: 210 40% 98%;
+    --accent: 262 83% 96%;
+    --accent-foreground: 262 83% 15%;
+  }
+
+  .theme-ocean.dark {
+    --primary: 197 71% 65%;
+    --accent: 197 71% 15%;
+    --accent-foreground: 197 71% 85%;
+  }
+
+  .theme-sunset.dark {
+    --primary: 25 95% 65%;
+    --accent: 25 95% 15%;
+    --accent-foreground: 25 95% 85%;
+  }
+
+  .theme-forest.dark {
+    --primary: 142 76% 50%;
+    --accent: 142 76% 15%;
+    --accent-foreground: 142 76% 85%;
+  }
+
+  .theme-purple.dark {
+    --primary: 262 83% 70%;
+    --accent: 262 83% 15%;
+    --accent-foreground: 262 83% 85%;
+  }
 }
 
 @layer base {
@@ -101,5 +148,31 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
+
+/* Custom animations and effects */
+@layer utilities {
+  .animate-gradient-x {
+    animation: gradient-x 15s ease infinite;
+    background-size: 200% 200%;
+  }
+
+  @keyframes gradient-x {
+    0%, 100% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+  }
+
+  .glass-effect {
+    @apply bg-white/10 backdrop-blur-lg border border-white/20;
+  }
+
+  .dark .glass-effect {
+    @apply bg-slate-900/10 backdrop-blur-lg border border-slate-700/20;
   }
 }

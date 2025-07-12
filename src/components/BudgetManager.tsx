@@ -11,6 +11,7 @@ import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import CurrencySelector from './CurrencySelector';
 import { 
   Plus, 
   DollarSign, 
@@ -25,7 +26,9 @@ import {
   TrendingUp,
   TrendingDown,
   Calendar,
-  PieChart
+  PieChart,
+  Wallet,
+  IndianRupee
 } from 'lucide-react';
 
 interface BudgetCategory {
@@ -75,15 +78,19 @@ const iconMap = {
   Utensils,
   Gamepad2,
   GraduationCap,
+  IndianRupee,
 };
 
 const BudgetManager = ({ userId, onStatsUpdate }: BudgetManagerProps) => {
   const [categories, setCategories] = useState<BudgetCategory[]>([]);
   const [budgets, setBudgets] = useState<Budget[]>([]);
   const [expenses, setExpenses] = useState<Expense[]>([]);
+  const [currency, setCurrency] = useState('USD');
   const [isAddingCategory, setIsAddingCategory] = useState(false);
   const [isAddingBudget, setIsAddingBudget] = useState(false);
   const [isAddingExpense, setIsAddingExpense] = useState(false);
+  const [isEditingBudget, setIsEditingBudget] = useState(false);
+  const [editingBudgetId, setEditingBudgetId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('overview');
 
   const [categoryForm, setCategoryForm] = useState({
@@ -111,7 +118,29 @@ const BudgetManager = ({ userId, onStatsUpdate }: BudgetManagerProps) => {
     fetchCategories();
     fetchBudgets();
     fetchExpenses();
+    
+    // Load saved currency
+    const savedCurrency = localStorage.getItem('currency');
+    if (savedCurrency) {
+      setCurrency(savedCurrency);
+    }
   }, [userId]);
+
+  const getCurrencySymbol = () => {
+    const symbols: { [key: string]: string } = {
+      'USD': '$',
+      'INR': '₹',
+      'EUR': '€',
+      'GBP': '£',
+      'JPY': '¥'
+    };
+    return symbols[currency] || '$';
+  };
+
+  const handleCurrencyChange = (newCurrency: string) => {
+    setCurrency(newCurrency);
+    localStorage.setItem('currency', newCurrency);
+  };
 
   const fetchCategories = async () => {
     try {
@@ -208,6 +237,63 @@ const BudgetManager = ({ userId, onStatsUpdate }: BudgetManagerProps) => {
     }
   };
 
+  const handleEditBudget = (budget: Budget) => {
+    setBudgetForm({
+      category_id: budget.category_id,
+      amount: budget.amount.toString(),
+      period: budget.period,
+      start_date: budget.start_date,
+      end_date: budget.end_date
+    });
+    setEditingBudgetId(budget.id);
+    setIsEditingBudget(true);
+  };
+
+  const handleUpdateBudget = async () => {
+    if (!editingBudgetId) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('budgets')
+        .update({
+          ...budgetForm,
+          amount: parseFloat(budgetForm.amount)
+        })
+        .eq('id', editingBudgetId)
+        .select();
+
+      if (error) throw error;
+
+      setBudgets(budgets.map(b => b.id === editingBudgetId ? data[0] : b));
+      setBudgetForm({ category_id: '', amount: '', period: 'monthly', start_date: '', end_date: '' });
+      setIsEditingBudget(false);
+      setEditingBudgetId(null);
+      toast.success('Budget updated successfully');
+      onStatsUpdate();
+    } catch (error) {
+      console.error('Error updating budget:', error);
+      toast.error('Failed to update budget');
+    }
+  };
+
+  const handleDeleteBudget = async (budgetId: string) => {
+    try {
+      const { error } = await supabase
+        .from('budgets')
+        .delete()
+        .eq('id', budgetId);
+
+      if (error) throw error;
+
+      setBudgets(budgets.filter(b => b.id !== budgetId));
+      toast.success('Budget deleted successfully');
+      onStatsUpdate();
+    } catch (error) {
+      console.error('Error deleting budget:', error);
+      toast.error('Failed to delete budget');
+    }
+  };
+
   const handleAddExpense = async () => {
     try {
       const { data, error } = await supabase
@@ -256,88 +342,108 @@ const BudgetManager = ({ userId, onStatsUpdate }: BudgetManagerProps) => {
 
   return (
     <div className="space-y-6">
-      {/* Header Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
-          <CardContent className="p-6">
+      {/* Currency Selector */}
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-bold bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">
+          Budget Manager
+        </h2>
+        <CurrencySelector currency={currency} onCurrencyChange={handleCurrencyChange} />
+      </div>
+
+      {/* Enhanced Header Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <Card className="relative overflow-hidden bg-gradient-to-br from-blue-50 via-blue-100 to-blue-200 dark:from-blue-950 dark:via-blue-900 dark:to-blue-800 border-blue-200 dark:border-blue-700">
+          <div className="absolute inset-0 bg-gradient-to-r from-blue-600/10 to-purple-600/10"></div>
+          <CardContent className="p-6 relative">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-blue-600">Total Budget</p>
-                <p className="text-2xl font-bold text-blue-900">${totalBudget.toFixed(2)}</p>
+                <p className="text-sm font-medium text-blue-600 dark:text-blue-400">Total Budget</p>
+                <p className="text-3xl font-bold text-blue-900 dark:text-blue-100">
+                  {getCurrencySymbol()}{totalBudget.toFixed(2)}
+                </p>
               </div>
-              <div className="h-12 w-12 bg-blue-500 rounded-full flex items-center justify-center">
-                <PieChart className="h-6 w-6 text-white" />
+              <div className="h-16 w-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg">
+                <PieChart className="h-8 w-8 text-white" />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-red-50 to-red-100 border-red-200">
-          <CardContent className="p-6">
+        <Card className="relative overflow-hidden bg-gradient-to-br from-red-50 via-red-100 to-red-200 dark:from-red-950 dark:via-red-900 dark:to-red-800 border-red-200 dark:border-red-700">
+          <div className="absolute inset-0 bg-gradient-to-r from-red-600/10 to-orange-600/10"></div>
+          <CardContent className="p-6 relative">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-red-600">Total Spent</p>
-                <p className="text-2xl font-bold text-red-900">${totalSpent.toFixed(2)}</p>
+                <p className="text-sm font-medium text-red-600 dark:text-red-400">Total Spent</p>
+                <p className="text-3xl font-bold text-red-900 dark:text-red-100">
+                  {getCurrencySymbol()}{totalSpent.toFixed(2)}
+                </p>
               </div>
-              <div className="h-12 w-12 bg-red-500 rounded-full flex items-center justify-center">
-                <TrendingDown className="h-6 w-6 text-white" />
+              <div className="h-16 w-16 bg-gradient-to-br from-red-500 to-orange-500 rounded-2xl flex items-center justify-center shadow-lg">
+                <TrendingDown className="h-8 w-8 text-white" />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200">
-          <CardContent className="p-6">
+        <Card className="relative overflow-hidden bg-gradient-to-br from-green-50 via-green-100 to-green-200 dark:from-green-950 dark:via-green-900 dark:to-green-800 border-green-200 dark:border-green-700">
+          <div className="absolute inset-0 bg-gradient-to-r from-green-600/10 to-emerald-600/10"></div>
+          <CardContent className="p-6 relative">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-green-600">Remaining</p>
-                <p className="text-2xl font-bold text-green-900">${totalRemaining.toFixed(2)}</p>
+                <p className="text-sm font-medium text-green-600 dark:text-green-400">Remaining</p>
+                <p className="text-3xl font-bold text-green-900 dark:text-green-100">
+                  {getCurrencySymbol()}{totalRemaining.toFixed(2)}
+                </p>
               </div>
-              <div className="h-12 w-12 bg-green-500 rounded-full flex items-center justify-center">
-                <TrendingUp className="h-6 w-6 text-white" />
+              <div className="h-16 w-16 bg-gradient-to-br from-green-500 to-emerald-500 rounded-2xl flex items-center justify-center shadow-lg">
+                <TrendingUp className="h-8 w-8 text-white" />
               </div>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="categories">Categories</TabsTrigger>
-          <TabsTrigger value="budgets">Budgets</TabsTrigger>
-          <TabsTrigger value="expenses">Expenses</TabsTrigger>
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+        <TabsList className="grid w-full grid-cols-4 h-12 rounded-xl bg-muted/50">
+          <TabsTrigger value="overview" className="rounded-lg font-medium">Overview</TabsTrigger>
+          <TabsTrigger value="categories" className="rounded-lg font-medium">Categories</TabsTrigger>
+          <TabsTrigger value="budgets" className="rounded-lg font-medium">Budgets</TabsTrigger>
+          <TabsTrigger value="expenses" className="rounded-lg font-medium">Expenses</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="overview" className="space-y-4">
-          <div className="grid gap-4">
+        <TabsContent value="overview" className="space-y-6">
+          <div className="grid gap-6">
             {categories.map(category => {
               const progress = getBudgetProgress(category.id);
               const IconComponent = getCategoryIcon(category.icon);
               
               return (
-                <Card key={category.id} className="hover:shadow-lg transition-shadow">
+                <Card key={category.id} className="hover:shadow-xl transition-all duration-300 bg-gradient-to-r from-background to-muted/20">
                   <CardContent className="p-6">
                     <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center space-x-3">
+                      <div className="flex items-center space-x-4">
                         <div 
-                          className="h-10 w-10 rounded-full flex items-center justify-center"
+                          className="h-14 w-14 rounded-2xl flex items-center justify-center shadow-lg"
                           style={{ backgroundColor: category.color }}
                         >
-                          <IconComponent className="h-5 w-5 text-white" />
+                          <IconComponent className="h-7 w-7 text-white" />
                         </div>
                         <div>
-                          <h3 className="font-semibold">{category.name}</h3>
-                          <p className="text-sm text-muted-foreground">
-                            ${progress.spent.toFixed(2)} of ${progress.total.toFixed(2)}
+                          <h3 className="text-lg font-semibold">{category.name}</h3>
+                          <p className="text-muted-foreground">
+                            {getCurrencySymbol()}{progress.spent.toFixed(2)} of {getCurrencySymbol()}{progress.total.toFixed(2)}
                           </p>
                         </div>
                       </div>
-                      <Badge variant={progress.percentage > 90 ? "destructive" : progress.percentage > 75 ? "default" : "secondary"}>
+                      <Badge 
+                        variant={progress.percentage > 90 ? "destructive" : progress.percentage > 75 ? "default" : "secondary"}
+                        className="text-sm px-3 py-1"
+                      >
                         {progress.percentage.toFixed(0)}%
                       </Badge>
                     </div>
-                    <Progress value={progress.percentage} className="h-2" />
+                    <Progress value={progress.percentage} className="h-3 rounded-full" />
                   </CardContent>
                 </Card>
               );
@@ -345,108 +451,17 @@ const BudgetManager = ({ userId, onStatsUpdate }: BudgetManagerProps) => {
           </div>
         </TabsContent>
 
-        <TabsContent value="categories" className="space-y-4">
+        <TabsContent value="budgets" className="space-y-6">
           <div className="flex justify-between items-center">
-            <h3 className="text-lg font-semibold">Budget Categories</h3>
-            <Dialog open={isAddingCategory} onOpenChange={setIsAddingCategory}>
-              <DialogTrigger asChild>
-                <Button>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Category
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Add Budget Category</DialogTitle>
-                  <DialogDescription>
-                    Create a new category to organize your budget
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="space-y-4">
-                  <div>
-                    <Label htmlFor="category-name">Name</Label>
-                    <Input
-                      id="category-name"
-                      value={categoryForm.name}
-                      onChange={(e) => setCategoryForm({...categoryForm, name: e.target.value})}
-                      placeholder="e.g., Food, Transportation"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="category-icon">Icon</Label>
-                    <Select
-                      value={categoryForm.icon}
-                      onValueChange={(value) => setCategoryForm({...categoryForm, icon: value})}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="DollarSign">💰 Money</SelectItem>
-                        <SelectItem value="ShoppingCart">🛒 Shopping</SelectItem>
-                        <SelectItem value="Home">🏠 Home</SelectItem>
-                        <SelectItem value="Car">🚗 Transportation</SelectItem>
-                        <SelectItem value="Utensils">🍽️ Food</SelectItem>
-                        <SelectItem value="Gamepad2">🎮 Entertainment</SelectItem>
-                        <SelectItem value="GraduationCap">🎓 Education</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label htmlFor="category-color">Color</Label>
-                    <Input
-                      id="category-color"
-                      type="color"
-                      value={categoryForm.color}
-                      onChange={(e) => setCategoryForm({...categoryForm, color: e.target.value})}
-                    />
-                  </div>
-                  <Button onClick={handleAddCategory} className="w-full">
-                    Add Category
-                  </Button>
-                </div>
-              </DialogContent>
-            </Dialog>
-          </div>
-
-          <div className="grid gap-4">
-            {categories.map(category => {
-              const IconComponent = getCategoryIcon(category.icon);
-              return (
-                <Card key={category.id}>
-                  <CardContent className="flex items-center justify-between p-4">
-                    <div className="flex items-center space-x-3">
-                      <div 
-                        className="h-10 w-10 rounded-full flex items-center justify-center"
-                        style={{ backgroundColor: category.color }}
-                      >
-                        <IconComponent className="h-5 w-5 text-white" />
-                      </div>
-                      <div>
-                        <h4 className="font-medium">{category.name}</h4>
-                        <p className="text-sm text-muted-foreground">
-                          Created {new Date(category.created_at).toLocaleDateString()}
-                        </p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
-        </TabsContent>
-
-        <TabsContent value="budgets" className="space-y-4">
-          <div className="flex justify-between items-center">
-            <h3 className="text-lg font-semibold">Budget Plans</h3>
+            <h3 className="text-xl font-semibold">Budget Plans</h3>
             <Dialog open={isAddingBudget} onOpenChange={setIsAddingBudget}>
               <DialogTrigger asChild>
-                <Button>
+                <Button className="bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90">
                   <Plus className="h-4 w-4 mr-2" />
                   Add Budget
                 </Button>
               </DialogTrigger>
-              <DialogContent>
+              <DialogContent className="max-w-md">
                 <DialogHeader>
                   <DialogTitle>Add Budget Plan</DialogTitle>
                   <DialogDescription>
@@ -473,7 +488,7 @@ const BudgetManager = ({ userId, onStatsUpdate }: BudgetManagerProps) => {
                     </Select>
                   </div>
                   <div>
-                    <Label htmlFor="budget-amount">Amount</Label>
+                    <Label htmlFor="budget-amount">Amount ({getCurrencySymbol()})</Label>
                     <Input
                       id="budget-amount"
                       type="number"
@@ -527,29 +542,211 @@ const BudgetManager = ({ userId, onStatsUpdate }: BudgetManagerProps) => {
             </Dialog>
           </div>
 
-          <div className="grid gap-4">
+          <div className="grid gap-6">
             {budgets.map(budget => {
               const category = categories.find(c => c.id === budget.category_id);
               const progress = getBudgetProgress(budget.category_id);
               
               return (
-                <Card key={budget.id}>
+                <Card key={budget.id} className="hover:shadow-lg transition-all duration-300">
                   <CardContent className="p-6">
                     <div className="flex items-center justify-between mb-4">
                       <div>
-                        <h4 className="font-medium">{category?.name}</h4>
-                        <p className="text-sm text-muted-foreground">
-                          ${budget.amount.toFixed(2)} {budget.period}
+                        <h4 className="text-lg font-medium">{category?.name}</h4>
+                        <p className="text-muted-foreground">
+                          {getCurrencySymbol()}{budget.amount.toFixed(2)} {budget.period}
                         </p>
                       </div>
-                      <Badge variant={progress.percentage > 90 ? "destructive" : "secondary"}>
-                        {progress.percentage.toFixed(0)}% used
-                      </Badge>
+                      <div className="flex items-center space-x-2">
+                        <Badge variant={progress.percentage > 90 ? "destructive" : "secondary"}>
+                          {progress.percentage.toFixed(0)}% used
+                        </Badge>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleEditBudget(budget)}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDeleteBudget(budget.id)}
+                          className="text-red-600 hover:text-red-700"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </div>
-                    <Progress value={progress.percentage} className="mb-2" />
+                    <Progress value={progress.percentage} className="mb-2 h-2" />
                     <p className="text-sm text-muted-foreground">
-                      ${progress.spent.toFixed(2)} spent of ${budget.amount.toFixed(2)}
+                      {getCurrencySymbol()}{progress.spent.toFixed(2)} spent of {getCurrencySymbol()}{budget.amount.toFixed(2)}
                     </p>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+
+          {/* Edit Budget Dialog */}
+          <Dialog open={isEditingBudget} onOpenChange={setIsEditingBudget}>
+            <DialogContent className="max-w-md">
+              <DialogHeader>
+                <DialogTitle>Edit Budget Plan</DialogTitle>
+                <DialogDescription>
+                  Update your budget settings
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="edit-budget-amount">Amount ({getCurrencySymbol()})</Label>
+                  <Input
+                    id="edit-budget-amount"
+                    type="number"
+                    step="0.01"
+                    value={budgetForm.amount}
+                    onChange={(e) => setBudgetForm({...budgetForm, amount: e.target.value})}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="edit-budget-period">Period</Label>
+                  <Select
+                    value={budgetForm.period}
+                    onValueChange={(value) => setBudgetForm({...budgetForm, period: value})}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="weekly">Weekly</SelectItem>
+                      <SelectItem value="monthly">Monthly</SelectItem>
+                      <SelectItem value="yearly">Yearly</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="edit-budget-start">Start Date</Label>
+                    <Input
+                      id="edit-budget-start"
+                      type="date"
+                      value={budgetForm.start_date}
+                      onChange={(e) => setBudgetForm({...budgetForm, start_date: e.target.value})}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="edit-budget-end">End Date</Label>
+                    <Input
+                      id="edit-budget-end"
+                      type="date"
+                      value={budgetForm.end_date}
+                      onChange={(e) => setBudgetForm({...budgetForm, end_date: e.target.value})}
+                    />
+                  </div>
+                </div>
+                <div className="flex space-x-2">
+                  <Button onClick={handleUpdateBudget} className="flex-1">
+                    Update Budget
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setIsEditingBudget(false)}
+                    className="flex-1"
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+        </TabsContent>
+
+        {/* Categories and Expenses tabs remain largely the same but with enhanced styling */}
+        <TabsContent value="categories" className="space-y-6">
+          <div className="flex justify-between items-center">
+            <h3 className="text-xl font-semibold">Budget Categories</h3>
+            <Dialog open={isAddingCategory} onOpenChange={setIsAddingCategory}>
+              <DialogTrigger asChild>
+                <Button className="bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Category
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Add Budget Category</DialogTitle>
+                  <DialogDescription>
+                    Create a new category to organize your budget
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="category-name">Name</Label>
+                    <Input
+                      id="category-name"
+                      value={categoryForm.name}
+                      onChange={(e) => setCategoryForm({...categoryForm, name: e.target.value})}
+                      placeholder="e.g., Food, Transportation"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="category-icon">Icon</Label>
+                    <Select
+                      value={categoryForm.icon}
+                      onValueChange={(value) => setCategoryForm({...categoryForm, icon: value})}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="DollarSign">💰 Money</SelectItem>
+                        <SelectItem value="IndianRupee">₹ Rupee</SelectItem>
+                        <SelectItem value="ShoppingCart">🛒 Shopping</SelectItem>
+                        <SelectItem value="Home">🏠 Home</SelectItem>
+                        <SelectItem value="Car">🚗 Transportation</SelectItem>
+                        <SelectItem value="Utensils">🍽️ Food</SelectItem>
+                        <SelectItem value="Gamepad2">🎮 Entertainment</SelectItem>
+                        <SelectItem value="GraduationCap">🎓 Education</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label htmlFor="category-color">Color</Label>
+                    <Input
+                      id="category-color"
+                      type="color"
+                      value={categoryForm.color}
+                      onChange={(e) => setCategoryForm({...categoryForm, color: e.target.value})}
+                    />
+                  </div>
+                  <Button onClick={handleAddCategory} className="w-full">
+                    Add Category
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
+          </div>
+
+          <div className="grid gap-4">
+            {categories.map(category => {
+              const IconComponent = getCategoryIcon(category.icon);
+              return (
+                <Card key={category.id} className="hover:shadow-lg transition-all duration-300">
+                  <CardContent className="flex items-center justify-between p-4">
+                    <div className="flex items-center space-x-3">
+                      <div 
+                        className="h-12 w-12 rounded-xl flex items-center justify-center"
+                        style={{ backgroundColor: category.color }}
+                      >
+                        <IconComponent className="h-6 w-6 text-white" />
+                      </div>
+                      <div>
+                        <h4 className="font-medium">{category.name}</h4>
+                        <p className="text-sm text-muted-foreground">
+                          Created {new Date(category.created_at).toLocaleDateString()}
+                        </p>
+                      </div>
+                    </div>
                   </CardContent>
                 </Card>
               );
@@ -557,12 +754,12 @@ const BudgetManager = ({ userId, onStatsUpdate }: BudgetManagerProps) => {
           </div>
         </TabsContent>
 
-        <TabsContent value="expenses" className="space-y-4">
+        <TabsContent value="expenses" className="space-y-6">
           <div className="flex justify-between items-center">
-            <h3 className="text-lg font-semibold">Recent Expenses</h3>
+            <h3 className="text-xl font-semibold">Recent Expenses</h3>
             <Dialog open={isAddingExpense} onOpenChange={setIsAddingExpense}>
               <DialogTrigger asChild>
-                <Button>
+                <Button className="bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90">
                   <Plus className="h-4 w-4 mr-2" />
                   Add Expense
                 </Button>
@@ -594,7 +791,7 @@ const BudgetManager = ({ userId, onStatsUpdate }: BudgetManagerProps) => {
                     </Select>
                   </div>
                   <div>
-                    <Label htmlFor="expense-amount">Amount</Label>
+                    <Label htmlFor="expense-amount">Amount ({getCurrencySymbol()})</Label>
                     <Input
                       id="expense-amount"
                       type="number"
@@ -636,14 +833,14 @@ const BudgetManager = ({ userId, onStatsUpdate }: BudgetManagerProps) => {
               const IconComponent = getCategoryIcon(category?.icon || 'DollarSign');
               
               return (
-                <Card key={expense.id}>
+                <Card key={expense.id} className="hover:shadow-lg transition-all duration-300">
                   <CardContent className="flex items-center justify-between p-4">
                     <div className="flex items-center space-x-3">
                       <div 
-                        className="h-10 w-10 rounded-full flex items-center justify-center"
+                        className="h-12 w-12 rounded-xl flex items-center justify-center"
                         style={{ backgroundColor: category?.color || '#3B82F6' }}
                       >
-                        <IconComponent className="h-5 w-5 text-white" />
+                        <IconComponent className="h-6 w-6 text-white" />
                       </div>
                       <div>
                         <h4 className="font-medium">{expense.description}</h4>
@@ -653,7 +850,9 @@ const BudgetManager = ({ userId, onStatsUpdate }: BudgetManagerProps) => {
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="font-semibold text-red-600">-${expense.amount.toFixed(2)}</p>
+                      <p className="font-semibold text-red-600">
+                        -{getCurrencySymbol()}{expense.amount.toFixed(2)}
+                      </p>
                     </div>
                   </CardContent>
                 </Card>
