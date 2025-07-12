@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -28,9 +27,11 @@ interface Task {
   title: string;
   description: string;
   due_date: string;
-  priority: 'Low' | 'Medium' | 'High';
-  status: 'active' | 'completed';
+  priority: string;
+  status: string;
   created_at: string;
+  updated_at: string;
+  user_id: string;
 }
 
 interface TaskManagerProps {
@@ -51,7 +52,7 @@ const TaskManager = ({ userId, onStatsUpdate }: TaskManagerProps) => {
     title: '',
     description: '',
     due_date: '',
-    priority: 'Medium' as 'Low' | 'Medium' | 'High',
+    priority: 'Medium',
   });
 
   useEffect(() => {
@@ -289,7 +290,7 @@ const TaskManager = ({ userId, onStatsUpdate }: TaskManagerProps) => {
                 <Label htmlFor="priority">Priority</Label>
                 <Select
                   value={formData.priority}
-                  onValueChange={(value: 'Low' | 'Medium' | 'High') => 
+                  onValueChange={(value) => 
                     setFormData({ ...formData, priority: value })
                   }
                 >
