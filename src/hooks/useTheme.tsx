@@ -37,13 +37,13 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       root.classList.add('dark');
     }
 
-    // Apply color theme (ensure it's applied regardless of default)
-    if (colorTheme !== 'default') {
-      root.classList.add(`theme-${colorTheme}`);
-    }
+    // Apply color theme
+    root.classList.add(`theme-${colorTheme}`);
     
     localStorage.setItem('theme', theme);
     localStorage.setItem('colorTheme', colorTheme);
+    
+    console.log('Theme applied:', { theme, colorTheme, classes: root.classList.toString() });
   }, [theme, colorTheme]);
 
   const toggleTheme = () => {
