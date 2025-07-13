@@ -29,16 +29,18 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   useEffect(() => {
     const root = document.documentElement;
     
-    // Apply theme
+    // Remove all existing theme classes
+    root.classList.remove('dark', 'theme-default', 'theme-ocean', 'theme-sunset', 'theme-forest', 'theme-purple');
+    
+    // Apply dark/light theme
     if (theme === 'dark') {
       root.classList.add('dark');
-    } else {
-      root.classList.remove('dark');
     }
 
-    // Apply color theme
-    root.className = root.className.replace(/theme-\w+/g, '');
-    root.classList.add(`theme-${colorTheme}`);
+    // Apply color theme (ensure it's applied regardless of default)
+    if (colorTheme !== 'default') {
+      root.classList.add(`theme-${colorTheme}`);
+    }
     
     localStorage.setItem('theme', theme);
     localStorage.setItem('colorTheme', colorTheme);

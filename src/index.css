@@ -87,33 +87,12 @@ All colors MUST be HSL.
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
 
-  /* Theme variants */
+  /* Theme variants - Ocean */
   .theme-ocean {
     --primary: 197 71% 52%;
     --primary-foreground: 210 40% 98%;
     --accent: 197 71% 96%;
     --accent-foreground: 197 71% 15%;
-  }
-
-  .theme-sunset {
-    --primary: 25 95% 53%;
-    --primary-foreground: 210 40% 98%;
-    --accent: 25 95% 96%;
-    --accent-foreground: 25 95% 15%;
-  }
-
-  .theme-forest {
-    --primary: 142 76% 36%;
-    --primary-foreground: 210 40% 98%;
-    --accent: 142 76% 96%;
-    --accent-foreground: 142 76% 15%;
-  }
-
-  .theme-purple {
-    --primary: 262 83% 58%;
-    --primary-foreground: 210 40% 98%;
-    --accent: 262 83% 96%;
-    --accent-foreground: 262 83% 15%;
   }
 
   .theme-ocean.dark {
@@ -122,16 +101,40 @@ All colors MUST be HSL.
     --accent-foreground: 197 71% 85%;
   }
 
+  /* Theme variants - Sunset */
+  .theme-sunset {
+    --primary: 25 95% 53%;
+    --primary-foreground: 210 40% 98%;
+    --accent: 25 95% 96%;
+    --accent-foreground: 25 95% 15%;
+  }
+
   .theme-sunset.dark {
     --primary: 25 95% 65%;
     --accent: 25 95% 15%;
     --accent-foreground: 25 95% 85%;
   }
 
+  /* Theme variants - Forest */
+  .theme-forest {
+    --primary: 142 76% 36%;
+    --primary-foreground: 210 40% 98%;
+    --accent: 142 76% 96%;
+    --accent-foreground: 142 76% 15%;
+  }
+
   .theme-forest.dark {
     --primary: 142 76% 50%;
     --accent: 142 76% 15%;
     --accent-foreground: 142 76% 85%;
+  }
+
+  /* Theme variants - Purple */
+  .theme-purple {
+    --primary: 262 83% 58%;
+    --primary-foreground: 210 40% 98%;
+    --accent: 262 83% 96%;
+    --accent-foreground: 262 83% 15%;
   }
 
   .theme-purple.dark {
@@ -174,5 +177,33 @@ All colors MUST be HSL.
 
   .dark .glass-effect {
     @apply bg-slate-900/10 backdrop-blur-lg border border-slate-700/20;
+  }
+
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* Mobile optimizations */
+@media (max-width: 768px) {
+  .container {
+    @apply px-4;
+  }
+  
+  .text-responsive {
+    @apply text-sm md:text-base;
+  }
+  
+  .padding-responsive {
+    @apply p-4 md:p-6;
+  }
+  
+  .space-responsive {
+    @apply space-y-4 md:space-y-6;
   }
 }

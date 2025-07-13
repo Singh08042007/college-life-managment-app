@@ -49,38 +49,38 @@ const ThemeSelector = () => {
   const { theme, colorTheme, toggleTheme, setColorTheme } = useTheme();
 
   return (
-    <div className="flex items-center space-x-2">
+    <div className="flex items-center space-x-1 md:space-x-2">
       <Button
         variant="ghost"
         size="sm"
         onClick={toggleTheme}
-        className="relative overflow-hidden"
+        className="relative overflow-hidden p-1.5 md:p-2"
       >
         {theme === 'light' ? (
-          <Moon className="h-4 w-4" />
+          <Moon className="h-3 w-3 md:h-4 md:w-4" />
         ) : (
-          <Sun className="h-4 w-4" />
+          <Sun className="h-3 w-3 md:h-4 md:w-4" />
         )}
       </Button>
 
       <Dialog>
         <DialogTrigger asChild>
-          <Button variant="ghost" size="sm">
-            <Palette className="h-4 w-4" />
+          <Button variant="ghost" size="sm" className="p-1.5 md:p-2">
+            <Palette className="h-3 w-3 md:h-4 md:w-4" />
           </Button>
         </DialogTrigger>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-sm md:max-w-2xl mx-4 md:mx-auto">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Palette className="h-5 w-5" />
+            <DialogTitle className="flex items-center gap-2 text-lg md:text-xl">
+              <Palette className="h-4 w-4 md:h-5 md:w-5" />
               Choose Your Theme
             </DialogTitle>
-            <DialogDescription>
+            <DialogDescription className="text-sm md:text-base">
               Select a color theme that matches your style
             </DialogDescription>
           </DialogHeader>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4 mt-4 md:mt-6 max-h-96 md:max-h-none overflow-y-auto">
             {colorThemes.map((themeOption) => {
               const IconComponent = themeOption.icon;
               const isSelected = colorTheme === themeOption.id;
@@ -93,22 +93,22 @@ const ThemeSelector = () => {
                   }`}
                   onClick={() => setColorTheme(themeOption.id as any)}
                 >
-                  <CardHeader className="pb-2">
+                  <CardHeader className="pb-2 p-3 md:p-4">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-2">
-                        <IconComponent className="h-5 w-5" />
-                        <CardTitle className="text-sm">{themeOption.name}</CardTitle>
+                        <IconComponent className="h-4 w-4 md:h-5 md:w-5" />
+                        <CardTitle className="text-sm md:text-base">{themeOption.name}</CardTitle>
                       </div>
                       {isSelected && (
                         <Badge variant="default" className="text-xs">Active</Badge>
                       )}
                     </div>
-                    <CardDescription className="text-xs">
+                    <CardDescription className="text-xs md:text-sm">
                       {themeOption.description}
                     </CardDescription>
                   </CardHeader>
-                  <CardContent>
-                    <div className={`h-16 w-full rounded-lg ${themeOption.preview}`} />
+                  <CardContent className="p-3 md:p-4 pt-0">
+                    <div className={`h-12 md:h-16 w-full rounded-lg ${themeOption.preview}`} />
                   </CardContent>
                 </Card>
               );
