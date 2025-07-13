@@ -64,75 +64,6 @@
     --sidebar-border: 240 3.7% 15.9%;
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
-
-  /* Blue Theme */
-  .theme-blue {
-    --primary: 221.2 83.2% 53.3%;
-    --primary-foreground: 210 40% 98%;
-    --ring: 221.2 83.2% 53.3%;
-    --sidebar-ring: 221.2 83.2% 53.3%;
-  }
-
-  .theme-blue.dark {
-    --primary: 217.2 91.2% 59.8%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-    --ring: 217.2 91.2% 59.8%;
-    --sidebar-primary: 217.2 91.2% 59.8%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
-  }
-
-  /* Green Theme */
-  .theme-green {
-    --primary: 142.1 76.2% 36.3%;
-    --primary-foreground: 355.7 100% 97.3%;
-    --ring: 142.1 76.2% 36.3%;
-    --sidebar-ring: 142.1 76.2% 36.3%;
-  }
-
-  .theme-green.dark {
-    --primary: 142.1 70.6% 45.3%;
-    --primary-foreground: 144.9 80.4% 10%;
-    --ring: 142.1 70.6% 45.3%;
-    --sidebar-primary: 142.1 70.6% 45.3%;
-    --sidebar-ring: 142.1 70.6% 45.3%;
-  }
-
-  /* Purple Theme */
-  .theme-purple {
-    --primary: 262.1 83.3% 57.8%;
-    --primary-foreground: 210 40% 98%;
-    --ring: 262.1 83.3% 57.8%;
-    --sidebar-ring: 262.1 83.3% 57.8%;
-  }
-
-  .theme-purple.dark {
-    --primary: 263.4 70% 50.4%;
-    --primary-foreground: 210 40% 98%;
-    --ring: 263.4 70% 50.4%;
-    --sidebar-primary: 263.4 70% 50.4%;
-    --sidebar-ring: 263.4 70% 50.4%;
-  }
-
-  /* Orange Theme */
-  .theme-orange {
-    --primary: 24.6 95% 53.1%;
-    --primary-foreground: 60 9.1% 97.8%;
-    --ring: 24.6 95% 53.1%;
-    --sidebar-ring: 24.6 95% 53.1%;
-  }
-
-  .theme-orange.dark {
-    --primary: 20.5 90.2% 48.2%;
-    --primary-foreground: 60 9.1% 97.8%;
-    --ring: 20.5 90.2% 48.2%;
-    --sidebar-primary: 20.5 90.2% 48.2%;
-    --sidebar-ring: 20.5 90.2% 48.2%;
-  }
-
-  /* Default Theme - same as base */
-  .theme-default {
-    /* Uses the base CSS variables */
-  }
 }
 
 @layer base {
@@ -145,7 +76,7 @@
   }
 }
 
-/* Custom animations and effects */
+/* Enhanced animations and effects */
 @layer utilities {
   .animate-gradient-x {
     animation: gradient-x 15s ease infinite;
@@ -177,6 +108,41 @@
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
   }
+
+  /* Enhanced hover effects */
+  .hover-lift {
+    @apply transition-all duration-300 hover:scale-105 hover:shadow-lg;
+  }
+
+  .hover-glow {
+    @apply transition-all duration-300 hover:shadow-xl hover:shadow-primary/25;
+  }
+
+  /* Responsive text utilities */
+  .text-responsive {
+    @apply text-sm md:text-base;
+  }
+  
+  .text-responsive-lg {
+    @apply text-lg md:text-xl lg:text-2xl;
+  }
+  
+  .text-responsive-xl {
+    @apply text-2xl md:text-3xl lg:text-4xl;
+  }
+
+  /* Responsive spacing utilities */
+  .padding-responsive {
+    @apply p-4 md:p-6 lg:p-8;
+  }
+  
+  .space-responsive {
+    @apply space-y-4 md:space-y-6 lg:space-y-8;
+  }
+
+  .gap-responsive {
+    @apply gap-3 md:gap-4 lg:gap-6;
+  }
 }
 
 /* Mobile optimizations */
@@ -185,15 +151,35 @@
     @apply px-4;
   }
   
-  .text-responsive {
-    @apply text-sm md:text-base;
+  /* Better touch targets for mobile */
+  .touch-target {
+    @apply min-h-[44px] min-w-[44px];
   }
   
-  .padding-responsive {
-    @apply p-4 md:p-6;
+  /* Mobile-friendly card spacing */
+  .mobile-card {
+    @apply mx-2 rounded-lg;
+  }
+}
+
+/* Focus visible improvements */
+@layer base {
+  *:focus-visible {
+    @apply outline-2 outline-offset-2 outline-ring;
+  }
+}
+
+/* Custom scrollbar */
+@layer utilities {
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 8px;
   }
   
-  .space-responsive {
-    @apply space-y-4 md:space-y-6;
+  .custom-scrollbar::-webkit-scrollbar-track {
+    @apply bg-muted rounded-full;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    @apply bg-muted-foreground/30 rounded-full hover:bg-muted-foreground/50;
   }
 }
