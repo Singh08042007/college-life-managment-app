@@ -18,21 +18,48 @@ const NavigationTabs = ({ activeTab, onTabChange }: NavigationTabsProps) => {
   ];
 
   return (
-    <div className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-sm border-b border-white/20 dark:border-slate-700/50">
+    <div className="glass-card border-0 shadow-lg">
       <div className="max-w-7xl mx-auto padding-responsive">
-        <nav className="flex gap-responsive overflow-x-auto scrollbar-hide">
+        <nav className="flex gap-1 overflow-x-auto scrollbar-hide">
           {tabs.map((tab) => (
             <button
               key={tab.id}
               onClick={() => onTabChange(tab.id)}
-              className={`flex items-center gap-2 py-4 px-4 border-b-2 font-medium text-sm whitespace-nowrap transition-all duration-300 rounded-t-lg touch-target ${
+              className={`group relative flex items-center gap-3 py-4 px-6 font-medium text-sm whitespace-nowrap transition-all duration-300 rounded-xl touch-target ${
                 activeTab === tab.id
-                  ? 'border-primary text-primary bg-primary/10 shadow-lg'
-                  : 'border-transparent text-muted-foreground hover:text-foreground hover:border-muted-foreground hover:bg-muted/50'
+                  ? 'bg-gradient-primary text-white shadow-lg hover-glow'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-gradient-subtle border border-transparent hover:border-border/50'
               }`}
             >
-              <tab.icon className="h-4 w-4" />
-              <span className="hidden sm:inline">{tab.label}</span>
+              <div className={`relative ${activeTab === tab.id ? 'animate-pulse-glow' : ''}`}>
+                <tab.icon className={`h-5 w-5 transition-all duration-300 ${
+                  activeTab === tab.id 
+                    ? 'text-white drop-shadow-sm' 
+                    : 'group-hover:scale-110 group-hover:text-primary'
+                }`} />
+                {activeTab === tab.id && (
+                  <div className="absolute inset-0 bg-white/20 rounded-full blur-sm"></div>
+                )}
+              </div>
+              <span className={`hidden sm:inline transition-all duration-300 ${
+                activeTab === tab.id 
+                  ? 'text-white font-semibold' 
+                  : 'group-hover:font-medium'
+              }`}>
+                {tab.label}
+              </span>
+              
+              {/* Active indicator */}
+              {activeTab === tab.id && (
+                <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-8 h-1 bg-white/50 rounded-full"></div>
+              )}
+              
+              {/* Hover effect */}
+              <div className={`absolute inset-0 rounded-xl transition-all duration-300 ${
+                activeTab === tab.id 
+                  ? 'bg-gradient-to-r from-white/10 to-transparent' 
+                  : 'bg-gradient-subtle opacity-0 group-hover:opacity-100'
+              }`}></div>
             </button>
           ))}
         </nav>

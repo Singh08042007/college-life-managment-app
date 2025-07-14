@@ -83,17 +83,29 @@ const StatsGrid = ({ stats }: StatsGridProps) => {
   return (
     <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-responsive">
       {statsData.map((stat, index) => (
-        <Card key={index} className={`hover-lift hover-glow bg-gradient-to-br ${stat.gradient} ${stat.border}`}>
-          <CardContent className="p-4 md:p-6">
+        <Card key={index} className={`glass-card hover-lift hover-glow interactive-card group relative overflow-hidden border-0 shadow-lg ${stat.gradient} ${stat.border}`}>
+          {/* Shimmer effect on hover */}
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 shimmer"></div>
+          
+          <CardContent className="p-4 md:p-6 relative z-10">
             <div className="flex items-center gap-3 md:gap-4">
-              <div className={`p-3 bg-gradient-to-br ${stat.iconBg} rounded-xl shadow-lg`}>
+              <div className={`relative p-3 bg-gradient-to-br ${stat.iconBg} rounded-xl shadow-lg hover-scale group-hover:rotate-3 transition-all duration-300`}>
                 <stat.icon className="h-5 w-5 md:h-6 md:w-6 text-white" />
+                <div className="absolute inset-0 bg-white/10 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               </div>
-              <div>
-                <p className={`text-2xl md:text-3xl font-bold ${stat.textColor}`}>{stat.value}</p>
-                <p className={`text-xs md:text-sm ${stat.subTextColor} font-medium`}>{stat.label}</p>
+              <div className="space-y-1">
+                <p className={`text-2xl md:text-3xl font-bold ${stat.textColor} group-hover:scale-105 transition-transform duration-300`}>
+                  {stat.value}
+                </p>
+                <p className={`text-xs md:text-sm ${stat.subTextColor} font-medium`}>
+                  {stat.label}
+                </p>
               </div>
             </div>
+            
+            {/* Decorative elements */}
+            <div className="absolute top-2 right-2 w-8 h-8 bg-white/10 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            <div className="absolute bottom-2 left-2 w-4 h-4 bg-white/5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300" style={{ animationDelay: '0.1s' }}></div>
           </CardContent>
         </Card>
       ))}
