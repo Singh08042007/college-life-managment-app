@@ -26,15 +26,15 @@ const DashboardHeader = ({
 
   return (
     <>
-      <header className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl shadow-lg border-b border-white/20 dark:border-slate-700/50 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto padding-responsive">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl shadow-lg hover-lift">
-                  <GraduationCap className="h-6 w-6 text-white" />
+      <header className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl shadow-sm border-b border-white/20 dark:border-slate-700/50 sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+          <div className="flex justify-between items-center h-12">
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg shadow-md hover-lift">
+                  <GraduationCap className="h-5 w-5 text-white" />
                 </div>
-                <h1 className="text-responsive-lg font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                <h1 className="text-lg font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
                   Campus Life
                 </h1>
               </div>
