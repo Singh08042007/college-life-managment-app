@@ -37,7 +37,7 @@ const DashboardHeader = ({
                 </div>
                 <div className="flex flex-col">
                   <h1 className="text-lg font-bold bg-gradient-to-r from-purple-600 via-purple-700 to-pink-600 bg-clip-text text-transparent transition-all duration-300 hover:from-purple-500 hover:to-pink-500">
-                    Campus Life
+                    College Life Manager
                   </h1>
                   <div className="h-0.5 w-0 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full group-hover:w-full transition-all duration-500"></div>
                 </div>
