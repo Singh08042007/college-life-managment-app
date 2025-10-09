@@ -92,7 +92,7 @@ const AuthPage = () => {
           <div className="mx-auto w-16 h-16 bg-white rounded-full flex items-center justify-center mb-4 shadow-lg">
             <GraduationCap className="h-8 w-8 text-purple-600" />
           </div>
-          <h1 className="text-3xl font-bold text-white mb-2">Campus Life</h1>
+          <h1 className="text-3xl font-bold text-white mb-2">College Life Manager</h1>
           <p className="text-white/80">Your college companion app</p>
         </div>
 
