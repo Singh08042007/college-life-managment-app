@@ -318,6 +318,24 @@ const BudgetManager = ({ userId, onStatsUpdate }: BudgetManagerProps) => {
     }
   };
 
+  const handleDeleteExpense = async (expenseId: string) => {
+    try {
+      const { error } = await supabase
+        .from('expenses')
+        .delete()
+        .eq('id', expenseId);
+
+      if (error) throw error;
+
+      setExpenses(expenses.filter(e => e.id !== expenseId));
+      toast.success('Expense deleted successfully');
+      onStatsUpdate();
+    } catch (error) {
+      console.error('Error deleting expense:', error);
+      toast.error('Failed to delete expense');
+    }
+  };
+
   const getBudgetProgress = (categoryId: string) => {
     const budget = budgets.find(b => b.category_id === categoryId);
     if (!budget) return { spent: 0, total: 0, percentage: 0 };
@@ -849,10 +867,18 @@ const BudgetManager = ({ userId, onStatsUpdate }: BudgetManagerProps) => {
                         </p>
                       </div>
                     </div>
-                    <div className="text-right">
+                    <div className="flex items-center space-x-3">
                       <p className="font-semibold text-red-600">
                         -{getCurrencySymbol()}{expense.amount.toFixed(2)}
                       </p>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleDeleteExpense(expense.id)}
+                        className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </div>
                   </CardContent>
                 </Card>
