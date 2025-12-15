@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { TrendingUp, Timer, Target, BookOpen, Wallet, Settings, CalendarDays } from 'lucide-react';
+import { TrendingUp, Timer, Target, BookOpen, Wallet, Settings, CalendarDays, Calculator } from 'lucide-react';
 
 interface NavigationTabsProps {
   activeTab: string;
@@ -11,6 +11,7 @@ const NavigationTabs = ({ activeTab, onTabChange }: NavigationTabsProps) => {
   const tabs = [
     { id: 'overview', label: 'Overview', icon: TrendingUp },
     { id: 'tracker', label: 'Study Tracker', icon: CalendarDays },
+    { id: 'cgpa', label: 'CGPA', icon: Calculator },
     { id: 'pomodoro', label: 'Timer', icon: Timer },
     { id: 'tasks', label: 'Tasks', icon: Target },
     { id: 'courses', label: 'Courses', icon: BookOpen },

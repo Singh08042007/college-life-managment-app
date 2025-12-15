@@ -9,6 +9,7 @@ import CourseManager from './CourseManager';
 import BudgetManager from './BudgetManager';
 import PomodoroTimer from './PomodoroTimer';
 import YearlyTracker from './YearlyTracker';
+import CGPACalculator from './CGPACalculator';
 import DashboardHeader from './dashboard/DashboardHeader';
 import NavigationTabs from './dashboard/NavigationTabs';
 import OverviewTab from './dashboard/OverviewTab';
@@ -149,6 +150,17 @@ const Dashboard = ({ user, session }: DashboardProps) => {
               </p>
             </div>
             <YearlyTracker userId={user.id} />
+          </div>
+        )}
+        {activeTab === 'cgpa' && (
+          <div className="max-w-3xl mx-auto">
+            <div className="text-center mb-8">
+              <h2 className="text-responsive-xl font-bold mb-2 bg-gradient-to-r from-green-600 to-teal-600 bg-clip-text text-transparent">CGPA Calculator</h2>
+              <p className="text-responsive text-muted-foreground">
+                Calculate your predicted CGPA based on your marks
+              </p>
+            </div>
+            <CGPACalculator />
           </div>
         )}
         {activeTab === 'pomodoro' && (
