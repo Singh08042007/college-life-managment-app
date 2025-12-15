@@ -10,6 +10,7 @@ import BudgetManager from './BudgetManager';
 import PomodoroTimer from './PomodoroTimer';
 import YearlyTracker from './YearlyTracker';
 import CGPACalculator from './CGPACalculator';
+import Community from './Community';
 import DashboardHeader from './dashboard/DashboardHeader';
 import NavigationTabs from './dashboard/NavigationTabs';
 import OverviewTab from './dashboard/OverviewTab';
@@ -177,6 +178,17 @@ const Dashboard = ({ user, session }: DashboardProps) => {
         {activeTab === 'tasks' && <TaskManager userId={user.id} onStatsUpdate={fetchStats} />}
         {activeTab === 'courses' && <CourseManager userId={user.id} onStatsUpdate={fetchStats} />}
         {activeTab === 'budget' && <BudgetManager userId={user.id} onStatsUpdate={fetchStats} />}
+        {activeTab === 'community' && (
+          <div className="max-w-3xl mx-auto">
+            <div className="text-center mb-8">
+              <h2 className="text-responsive-xl font-bold mb-2 bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">Community</h2>
+              <p className="text-responsive text-muted-foreground">
+                Connect and chat with fellow students
+              </p>
+            </div>
+            <Community user={user} userName={userName} />
+          </div>
+        )}
         {activeTab === 'profile' && <ProfileManager user={user} onProfileUpdate={fetchProfile} />}
       </main>
     </div>
