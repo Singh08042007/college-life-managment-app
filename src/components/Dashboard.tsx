@@ -8,6 +8,7 @@ import ProfileManager from './ProfileManager';
 import CourseManager from './CourseManager';
 import BudgetManager from './BudgetManager';
 import PomodoroTimer from './PomodoroTimer';
+import YearlyTracker from './YearlyTracker';
 import DashboardHeader from './dashboard/DashboardHeader';
 import NavigationTabs from './dashboard/NavigationTabs';
 import OverviewTab from './dashboard/OverviewTab';
@@ -138,6 +139,17 @@ const Dashboard = ({ user, session }: DashboardProps) => {
             stats={stats}
             onTabChange={setActiveTab}
           />
+        )}
+        {activeTab === 'tracker' && (
+          <div className="max-w-5xl mx-auto">
+            <div className="text-center mb-8">
+              <h2 className="text-responsive-xl font-bold mb-2 bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">Yearly Study Tracker</h2>
+              <p className="text-responsive text-muted-foreground">
+                Track your daily study progress and visualize your yearly achievements
+              </p>
+            </div>
+            <YearlyTracker userId={user.id} />
+          </div>
         )}
         {activeTab === 'pomodoro' && (
           <div className="max-w-2xl mx-auto">
