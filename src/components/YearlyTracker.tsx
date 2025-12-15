@@ -6,8 +6,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Play, Pause, Square, Clock, BookOpen, Target, TrendingUp, Calendar } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
-import { format, subDays, startOfDay, eachDayOfInterval, isSameDay } from 'date-fns';
-
+import { format, subDays, startOfDay, eachDayOfInterval } from 'date-fns';
+import StudySummaryCharts from './StudySummaryCharts';
 interface StudySession {
   id: string;
   date: string;
@@ -316,6 +316,9 @@ const YearlyTracker = ({ userId }: YearlyTrackerProps) => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Weekly/Monthly Summary Charts */}
+      <StudySummaryCharts sessions={sessions} />
 
       {/* Notes Modal */}
       <Dialog open={showNotesModal} onOpenChange={setShowNotesModal}>
