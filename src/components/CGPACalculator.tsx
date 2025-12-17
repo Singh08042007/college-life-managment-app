@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Plus, Trash2, Calculator, GraduationCap } from "lucide-react";
+import { Plus, Trash2, Calculator, GraduationCap, Users, User } from "lucide-react";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Subject {
   id: string;
@@ -14,12 +15,76 @@ interface Subject {
   credits: string;
 }
 
-const CGPACalculator = () => {
-  const [subjects, setSubjects] = useState<Subject[]>([
+interface Course {
+  id: string;
+  name: string;
+  code: string;
+  credits: number;
+}
+
+interface CGPACalculatorProps {
+  userId?: string;
+}
+
+const CGPACalculator = ({ userId }: CGPACalculatorProps) => {
+  const [mode, setMode] = useState<"my-cgpa" | "others-cgpa">("my-cgpa");
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [loading, setLoading] = useState(false);
+  
+  // My CGPA mode - subjects from courses
+  const [mySubjects, setMySubjects] = useState<Subject[]>([]);
+  
+  // Others CGPA mode - manual entry
+  const [otherSubjects, setOtherSubjects] = useState<Subject[]>([
     { id: "1", name: "", totalMarks: "100", obtainedMarks: "", credits: "3" }
   ]);
+  
   const [calculatedCGPA, setCalculatedCGPA] = useState<number | null>(null);
   const [totalPercentage, setTotalPercentage] = useState<number | null>(null);
+
+  // Fetch courses when in "my-cgpa" mode
+  useEffect(() => {
+    if (mode === "my-cgpa" && userId) {
+      fetchCourses();
+    }
+  }, [mode, userId]);
+
+  const fetchCourses = async () => {
+    if (!userId) return;
+    
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from("courses")
+        .select("id, name, code, credits")
+        .eq("user_id", userId);
+
+      if (error) {
+        toast.error("Failed to fetch courses");
+        return;
+      }
+
+      setCourses(data || []);
+      
+      // Convert courses to subjects format
+      if (data && data.length > 0) {
+        const subjectsFromCourses: Subject[] = data.map(course => ({
+          id: course.id,
+          name: `${course.code} - ${course.name}`,
+          totalMarks: "100",
+          obtainedMarks: "",
+          credits: course.credits.toString()
+        }));
+        setMySubjects(subjectsFromCourses);
+      } else {
+        setMySubjects([]);
+      }
+    } catch (error) {
+      toast.error("Error fetching courses");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const addSubject = () => {
     const newSubject: Subject = {
@@ -29,19 +94,25 @@ const CGPACalculator = () => {
       obtainedMarks: "",
       credits: "3"
     };
-    setSubjects([...subjects, newSubject]);
+    setOtherSubjects([...otherSubjects, newSubject]);
   };
 
   const removeSubject = (id: string) => {
-    if (subjects.length === 1) {
+    if (otherSubjects.length === 1) {
       toast.error("At least one subject is required");
       return;
     }
-    setSubjects(subjects.filter(s => s.id !== id));
+    setOtherSubjects(otherSubjects.filter(s => s.id !== id));
   };
 
-  const updateSubject = (id: string, field: keyof Subject, value: string) => {
-    setSubjects(subjects.map(s => 
+  const updateMySubject = (id: string, value: string) => {
+    setMySubjects(mySubjects.map(s => 
+      s.id === id ? { ...s, obtainedMarks: value } : s
+    ));
+  };
+
+  const updateOtherSubject = (id: string, field: keyof Subject, value: string) => {
+    setOtherSubjects(otherSubjects.map(s => 
       s.id === id ? { ...s, [field]: value } : s
     ));
   };
@@ -67,6 +138,13 @@ const CGPACalculator = () => {
   };
 
   const calculateCGPA = () => {
+    const subjects = mode === "my-cgpa" ? mySubjects : otherSubjects;
+    
+    if (subjects.length === 0) {
+      toast.error("No subjects to calculate");
+      return;
+    }
+
     let totalCredits = 0;
     let totalGradePoints = 0;
     let totalObtained = 0;
@@ -78,7 +156,7 @@ const CGPACalculator = () => {
       const credits = parseFloat(subject.credits);
 
       if (isNaN(obtained) || isNaN(total) || isNaN(credits)) {
-        toast.error("Please fill all fields with valid numbers");
+        toast.error("Please fill all obtained marks with valid numbers");
         return;
       }
 
@@ -110,7 +188,17 @@ const CGPACalculator = () => {
   };
 
   const resetCalculator = () => {
-    setSubjects([{ id: "1", name: "", totalMarks: "100", obtainedMarks: "", credits: "3" }]);
+    if (mode === "my-cgpa") {
+      setMySubjects(mySubjects.map(s => ({ ...s, obtainedMarks: "" })));
+    } else {
+      setOtherSubjects([{ id: "1", name: "", totalMarks: "100", obtainedMarks: "", credits: "3" }]);
+    }
+    setCalculatedCGPA(null);
+    setTotalPercentage(null);
+  };
+
+  const handleModeChange = (newMode: "my-cgpa" | "others-cgpa") => {
+    setMode(newMode);
     setCalculatedCGPA(null);
     setTotalPercentage(null);
   };
@@ -126,68 +214,159 @@ const CGPACalculator = () => {
           <p className="text-sm text-muted-foreground">
             Enter your subjects with marks to calculate your predicted CGPA
           </p>
+          
+          {/* Mode Toggle */}
+          <div className="flex gap-2 pt-4">
+            <Button
+              variant={mode === "my-cgpa" ? "default" : "outline"}
+              onClick={() => handleModeChange("my-cgpa")}
+              className="gap-2 flex-1 sm:flex-none"
+            >
+              <User className="h-4 w-4" />
+              My CGPA
+            </Button>
+            <Button
+              variant={mode === "others-cgpa" ? "default" : "outline"}
+              onClick={() => handleModeChange("others-cgpa")}
+              className="gap-2 flex-1 sm:flex-none"
+            >
+              <Users className="h-4 w-4" />
+              Calculate Others
+            </Button>
+          </div>
         </CardHeader>
+        
         <CardContent className="space-y-4">
-          {subjects.map((subject, index) => (
-            <div key={subject.id} className="grid grid-cols-12 gap-3 items-end p-4 rounded-lg bg-muted/30 border border-border/30">
-              <div className="col-span-12 sm:col-span-3">
-                <Label className="text-xs text-muted-foreground">Subject Name</Label>
-                <Input
-                  placeholder={`Subject ${index + 1}`}
-                  value={subject.name}
-                  onChange={(e) => updateSubject(subject.id, "name", e.target.value)}
-                  className="mt-1"
-                />
-              </div>
-              <div className="col-span-4 sm:col-span-2">
-                <Label className="text-xs text-muted-foreground">Total Marks</Label>
-                <Input
-                  type="number"
-                  placeholder="100"
-                  value={subject.totalMarks}
-                  onChange={(e) => updateSubject(subject.id, "totalMarks", e.target.value)}
-                  className="mt-1"
-                />
-              </div>
-              <div className="col-span-4 sm:col-span-3">
-                <Label className="text-xs text-muted-foreground">Obtained Marks</Label>
-                <Input
-                  type="number"
-                  placeholder="Enter marks"
-                  value={subject.obtainedMarks}
-                  onChange={(e) => updateSubject(subject.id, "obtainedMarks", e.target.value)}
-                  className="mt-1"
-                />
-              </div>
-              <div className="col-span-3 sm:col-span-2">
-                <Label className="text-xs text-muted-foreground">Credits</Label>
-                <Input
-                  type="number"
-                  placeholder="3"
-                  value={subject.credits}
-                  onChange={(e) => updateSubject(subject.id, "credits", e.target.value)}
-                  className="mt-1"
-                />
-              </div>
-              <div className="col-span-1 sm:col-span-2 flex justify-end">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => removeSubject(subject.id)}
-                  className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-          ))}
+          {mode === "my-cgpa" ? (
+            // My CGPA Mode - Auto-populated from courses
+            <>
+              {loading ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  Loading your courses...
+                </div>
+              ) : mySubjects.length === 0 ? (
+                <div className="text-center py-8 p-4 rounded-lg bg-muted/30 border border-border/30">
+                  <p className="text-muted-foreground mb-2">No courses added yet.</p>
+                  <p className="text-sm text-muted-foreground">
+                    Add courses in the "Courses" tab first, then come back here to calculate your CGPA.
+                  </p>
+                </div>
+              ) : (
+                <>
+                  <p className="text-sm text-muted-foreground bg-primary/10 p-3 rounded-lg">
+                    Your subjects and credits are auto-filled from your courses. Just enter your obtained marks.
+                  </p>
+                  {mySubjects.map((subject) => (
+                    <div key={subject.id} className="grid grid-cols-12 gap-3 items-end p-4 rounded-lg bg-muted/30 border border-border/30">
+                      <div className="col-span-12 sm:col-span-4">
+                        <Label className="text-xs text-muted-foreground">Subject</Label>
+                        <Input
+                          value={subject.name}
+                          disabled
+                          className="mt-1 bg-muted/50"
+                        />
+                      </div>
+                      <div className="col-span-4 sm:col-span-2">
+                        <Label className="text-xs text-muted-foreground">Credits</Label>
+                        <Input
+                          value={subject.credits}
+                          disabled
+                          className="mt-1 bg-muted/50"
+                        />
+                      </div>
+                      <div className="col-span-4 sm:col-span-2">
+                        <Label className="text-xs text-muted-foreground">Total Marks</Label>
+                        <Input
+                          value={subject.totalMarks}
+                          disabled
+                          className="mt-1 bg-muted/50"
+                        />
+                      </div>
+                      <div className="col-span-4 sm:col-span-4">
+                        <Label className="text-xs text-muted-foreground">Obtained Marks</Label>
+                        <Input
+                          type="number"
+                          placeholder="Enter marks"
+                          value={subject.obtainedMarks}
+                          onChange={(e) => updateMySubject(subject.id, e.target.value)}
+                          className="mt-1"
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </>
+              )}
+            </>
+          ) : (
+            // Others CGPA Mode - Manual entry (original behavior)
+            <>
+              {otherSubjects.map((subject, index) => (
+                <div key={subject.id} className="grid grid-cols-12 gap-3 items-end p-4 rounded-lg bg-muted/30 border border-border/30">
+                  <div className="col-span-12 sm:col-span-3">
+                    <Label className="text-xs text-muted-foreground">Subject Name</Label>
+                    <Input
+                      placeholder={`Subject ${index + 1}`}
+                      value={subject.name}
+                      onChange={(e) => updateOtherSubject(subject.id, "name", e.target.value)}
+                      className="mt-1"
+                    />
+                  </div>
+                  <div className="col-span-4 sm:col-span-2">
+                    <Label className="text-xs text-muted-foreground">Total Marks</Label>
+                    <Input
+                      type="number"
+                      placeholder="100"
+                      value={subject.totalMarks}
+                      onChange={(e) => updateOtherSubject(subject.id, "totalMarks", e.target.value)}
+                      className="mt-1"
+                    />
+                  </div>
+                  <div className="col-span-4 sm:col-span-3">
+                    <Label className="text-xs text-muted-foreground">Obtained Marks</Label>
+                    <Input
+                      type="number"
+                      placeholder="Enter marks"
+                      value={subject.obtainedMarks}
+                      onChange={(e) => updateOtherSubject(subject.id, "obtainedMarks", e.target.value)}
+                      className="mt-1"
+                    />
+                  </div>
+                  <div className="col-span-3 sm:col-span-2">
+                    <Label className="text-xs text-muted-foreground">Credits</Label>
+                    <Input
+                      type="number"
+                      placeholder="3"
+                      value={subject.credits}
+                      onChange={(e) => updateOtherSubject(subject.id, "credits", e.target.value)}
+                      className="mt-1"
+                    />
+                  </div>
+                  <div className="col-span-1 sm:col-span-2 flex justify-end">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => removeSubject(subject.id)}
+                      className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+
+              <Button variant="outline" onClick={addSubject} className="gap-2">
+                <Plus className="h-4 w-4" />
+                Add Subject
+              </Button>
+            </>
+          )}
 
           <div className="flex flex-wrap gap-3 pt-2">
-            <Button variant="outline" onClick={addSubject} className="gap-2">
-              <Plus className="h-4 w-4" />
-              Add Subject
-            </Button>
-            <Button onClick={calculateCGPA} className="gap-2">
+            <Button 
+              onClick={calculateCGPA} 
+              className="gap-2"
+              disabled={mode === "my-cgpa" && mySubjects.length === 0}
+            >
               <Calculator className="h-4 w-4" />
               Calculate CGPA
             </Button>
