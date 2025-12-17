@@ -161,7 +161,7 @@ const Dashboard = ({ user, session }: DashboardProps) => {
                 Calculate your predicted CGPA based on your marks
               </p>
             </div>
-            <CGPACalculator />
+            <CGPACalculator userId={user.id} />
           </div>
         )}
         {activeTab === 'pomodoro' && (
