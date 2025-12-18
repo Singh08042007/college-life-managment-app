@@ -105,9 +105,9 @@ const CGPACalculator = ({ userId }: CGPACalculatorProps) => {
     setOtherSubjects(otherSubjects.filter(s => s.id !== id));
   };
 
-  const updateMySubject = (id: string, value: string) => {
+  const updateMySubject = (id: string, field: "obtainedMarks" | "totalMarks", value: string) => {
     setMySubjects(mySubjects.map(s => 
-      s.id === id ? { ...s, obtainedMarks: value } : s
+      s.id === id ? { ...s, [field]: value } : s
     ));
   };
 
@@ -277,9 +277,10 @@ const CGPACalculator = ({ userId }: CGPACalculatorProps) => {
                       <div className="col-span-4 sm:col-span-2">
                         <Label className="text-xs text-muted-foreground">Total Marks</Label>
                         <Input
+                          type="number"
                           value={subject.totalMarks}
-                          disabled
-                          className="mt-1 bg-muted/50"
+                          onChange={(e) => updateMySubject(subject.id, "totalMarks", e.target.value)}
+                          className="mt-1"
                         />
                       </div>
                       <div className="col-span-4 sm:col-span-4">
@@ -288,7 +289,7 @@ const CGPACalculator = ({ userId }: CGPACalculatorProps) => {
                           type="number"
                           placeholder="Enter marks"
                           value={subject.obtainedMarks}
-                          onChange={(e) => updateMySubject(subject.id, e.target.value)}
+                          onChange={(e) => updateMySubject(subject.id, "obtainedMarks", e.target.value)}
                           className="mt-1"
                         />
                       </div>
